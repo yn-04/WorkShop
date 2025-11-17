@@ -1,0 +1,75 @@
+﻿@{
+  TempData.Keep();
+  string? currentPage = ViewContext.HttpContext.Request.Path;
+}
+
+<aside id="layout-menu" class="layout-menu menu-vertical menu">
+
+  @* ! Hide app brand if navbar-full *@
+  <div class='app-brand demo @((@ViewData["navbarFull"] != null && Convert.ToBoolean(@ViewData["navbarFull"])) ? "d-xl-none" : "")'>
+    
+    @* (แก้ไข 'Hpme' เป็น 'Home' ครับ) *@
+    <a asp-controller="Home" asp-action="Index" class="app-brand-link gap-xl-0 gap-2">
+      <span class="app-brand-logo demo me-1">
+            <img src="/img/WS_logo.png" width="30" />
+      </span>
+      <span class="app-brand-text demo menu-text fw-semibold ms-2">@TempData.Peek("appName")</span>
+    </a>
+  </div>
+
+  <div class="menu-inner-shadow"></div>
+
+  @* --- ⬇️ นี่คือเมนูใหม่ที่สร้างขึ้น ⬇️ --- *@
+  <ul class="menu-inner py-1">
+    
+    <li class='menu-item@(currentPage.StartsWith("/Home") || currentPage == "/" ? " active" : "")'>
+      <a asp-controller="Home" asp-action="Index" class="menu-link">
+        <i class="menu-icon icon-base ri ri-home-smile-line"></i>
+        <div>Home</div>
+      </a>
+    </li>
+
+    <li class='menu-item@(currentPage.StartsWith("/UserManage") ? " active" : "")'>
+      @* (สมมติว่า Controller ของคุณชื่อ UserManage) *@
+      <a asp-controller="UserManage" asp-action="Index" class="menu-link">
+        <i class="menu-icon icon-base ri ri-user-3-line"></i>
+        <div>User Manage</div>
+      </a>
+    </li>
+
+    <li class='menu-item@(currentPage.StartsWith("/RoleManage") ? " active" : "")'>
+      @* (สมมติว่า Controller ของคุณชื่อ RoleManage) *@
+      <a asp-controller="RoleManage" asp-action="Index" class="menu-link">
+        <i class="menu-icon icon-base ri ri-shield-keyhole-line"></i>
+        <div>Role Manage</div>
+      </a>
+    </li>
+
+    <li class='menu-item@(currentPage.StartsWith("/Product") ? " active" : "")'>
+      @* (สมมติว่า Controller ของคุณชื่อ Product) *@
+      <a asp-controller="Product" asp-action="Index" class="menu-link">
+        <i class="menu-icon icon-base ri ri-box-3-line"></i>
+        <div>Product</div>
+      </a>
+    </li>
+
+    <li class='menu-item@(currentPage.StartsWith("/Order") ? " active" : "")'>
+      @* (สมมติว่า Controller ของคุณชื่อ Order) *@
+      <a asp-controller="Order" asp-action="Index" class="menu-link">
+        <i class="menu-icon icon-base ri ri-file-text-line"></i>
+        <div>Order</div>
+      </a>
+    </li>
+
+    <li class="menu-item">
+      @* (ลิงก์ไปที่ UserController / Logout Action ที่เราทำไว้) *@
+      <a asp-controller="User" asp-action="Logout" class="menu-link">
+        <i class="menu-icon icon-base ri ri-logout-box-r-line"></i>
+        <div>Logout</div>
+      </a>
+    </li>
+    
+  </ul>
+  @* --- ⬆️ สิ้นสุดเมนูใหม่ ⬆️ --- *@
+
+</aside>

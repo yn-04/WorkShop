@@ -1,0 +1,20 @@
+@model myproject.Web.Controllers.EditUserVm
+@{
+    Layout = "_Layout.cshtml";
+}
+<h2>Edit User</h2>
+<form method="post">
+  <input type="hidden" name="Id" value="@Model.Id" />
+  <div class="mb-3">
+    <label class="form-label">Display Name</label>
+    <input class="form-control" name="DisplayName" value="@Model.DisplayName" required />
+  </div>
+  <div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" name="IsActive" checked="@Model.IsActive" />
+    <label class="form-check-label">Active</label>
+  </div>
+  <div class="mb-3">
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a class="btn btn-secondary" href="/Users">Cancel</a>
+  </div>
+</form>
