@@ -1,0 +1,90 @@
+﻿@model WorkShop.Service.Models.UserSearchModel
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-header-purple">
+            <tr>
+                <th>No.</th>
+                <th>Email</th>
+                <th>Display name</th>
+                <th>Status</th>
+                <th>Create date</th>
+                <th class="text-center">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Results != null && Model.Results.Any())
+            {
+                int rowNumber = ((Model.PageNo - 1) * Model.PageSize) + 1;
+                foreach (var user in Model.Results)
+                {
+                    <tr>
+                        <td>@(rowNumber++)</td>
+                        <td>@user.Email</td>
+                        <td>@user.DisplayName</td>
+                        <td>
+                            @if (user.StatusName == "Active")
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
+                        <td>@user.CreatedDate.ToString("MMM-dd-yyyy")</td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <a asp-action="Edit" asp-route-id="@user.UserId" class="btn-custom-edit">Edit</a>
+                                <form asp-action="Delete" asp-route-id="@user.UserId" method="post"
+                                      onsubmit="return confirm('Are you sure you want to delete this user?');"
+                                      style="margin:0;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn-custom-delete">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No users found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="d-flex justify-content-center align-items-center mt-4 pagination-container">
+        
+        @if (Model.HasPreviousPage)
+        {
+            <a href="javascript:void(0)" onclick="loadData(@(Model.PageNo - 1))" class="page-link-custom active-link">
+                Previous
+            </a>
+        }
+        else
+        {
+            <span class="page-link-custom">Previous</span>
+        }
+
+        <div class="page-box">
+            @Model.PageNo / @Model.TotalPages
+        </div>
+
+        @if (Model.HasNextPage)
+        {
+            <a href="javascript:void(0)" onclick="loadData(@(Model.PageNo + 1))" class="page-link-custom active-link">
+                Next
+            </a>
+        }
+        else
+        {
+            <span class="page-link-custom">Next</span>
+        }
+    </div>
+}

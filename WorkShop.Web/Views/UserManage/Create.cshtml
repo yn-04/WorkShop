@@ -1,0 +1,23 @@
+﻿@model WorkShop.Service.Models.UserFormModel
+
+@{
+    ViewData["Title"] = "Create New User";
+    var purplePrimary = "#6f42c1";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm" style="border-top: 4px solid @purplePrimary;">
+        <div class="card-header bg-white">
+            <h4 style="color: @purplePrimary; font-weight: bold;">Create User</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <partial name="_UserForm" model="Model" />
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

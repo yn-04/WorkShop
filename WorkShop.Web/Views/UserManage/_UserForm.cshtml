@@ -1,0 +1,202 @@
+﻿<!--Partial View ที่ใช้แสดงแบบฟอร์มสำหรับ Create และ Edit ผู้ใช้งาน-->
+@model WorkShop.Service.Models.UserFormModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    bool isEdit = Model.UserId > 0; //userId มากกว่า 0 แสดงว่าเป็นการแก้ไขข้อมูล
+}
+
+<div class="row g-4">
+    
+    <div class="col-md-6">
+        <div class="form-floating form-floating-outline">
+            <input asp-for="Email" class="form-control" placeholder="email" />
+            <label asp-for="Email">Email</label>
+        </div>
+        <span asp-validation-for="Email" class="text-danger small"></span>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="form-password-toggle">
+            <div class="input-group input-group-merge">
+                <div class="form-floating form-floating-outline">
+                    <input asp-for="Password" type="password" class="form-control" 
+                           id="inputPassword" 
+                           placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" 
+                           aria-describedby="inputPassword" 
+                           required="@(!isEdit)" />
+                    <label asp-for="Password">Password @if(isEdit){ <span class="text-muted small"></span> }</label>
+                </div>
+                <span class="input-group-text cursor-pointer" id="btnTogglePassword" style="cursor: pointer; z-index: 9999;">
+                    <i class="icon-base ri ri-eye-off-line icon-20px" id="iconPassword"></i>
+                </span>
+            </div>
+        </div>
+        <span asp-validation-for="Password" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <div class="form-password-toggle">
+            <div class="input-group input-group-merge">
+                <div class="form-floating form-floating-outline">
+                    <input asp-for="ConfirmPassword" type="password" class="form-control" 
+                           id="inputConfirmPassword" 
+                           placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" 
+                           aria-describedby="inputConfirmPassword" 
+                           required="@(!isEdit)" />
+                    <label asp-for="ConfirmPassword">Confirm Password</label>
+                </div>
+                <span class="input-group-text cursor-pointer" id="btnToggleConfirmPassword" style="cursor: pointer; z-index: 9999;">
+                    <i class="icon-base ri ri-eye-off-line icon-20px" id="iconConfirmPassword"></i>
+                </span>
+            </div>
+        </div>
+        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <div class="form-floating form-floating-outline">
+            <input asp-for="DisplayName" class="form-control" placeholder="Display Name" />
+            <label asp-for="DisplayName">Display Name</label>
+        </div>
+        <span asp-validation-for="DisplayName" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <div class="form-floating form-floating-outline">
+            <input asp-for="Phone" class="form-control" placeholder="Phone" />
+            <label asp-for="Phone">Phone</label>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="form-floating form-floating-outline">
+            <input asp-for="FirstName" class="form-control" placeholder="First Name" />
+            <label asp-for="FirstName">First Name</label>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="form-floating form-floating-outline">
+            <input asp-for="LastName" class="form-control" placeholder="Last Name" />
+            <label asp-for="LastName">Last Name</label>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="form-floating form-floating-outline">
+            <div class="form-control d-flex align-items-center border-0 ps-0"> 
+                <div class="form-check form-check-inline ms-3">
+                    <input class="form-check-input" type="radio" asp-for="IsActive" value="1">
+                    <label class="form-check-label">Active</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" asp-for="IsActive" value="0">
+                    <label class="form-check-label">Inactive</label>
+                </div>
+            </div>
+            <label>Status</label>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label" for="dropdownRoles">Roles</label>
+        
+        <div class="dropdown">
+            <button class="form-control text-start d-flex justify-content-between align-items-center" 
+                    type="button" 
+                    id="dropdownRoles" 
+                    data-bs-toggle="dropdown" 
+                    data-bs-auto-close="outside" 
+                    aria-expanded="false"
+                    style="height: 50px;"> 
+                <span id="roleButtonText" class="text-muted">Select Roles...</span>
+            </button>
+            
+            <div class="dropdown-menu w-100 p-3" aria-labelledby="dropdownRoles" style="max-height: 300px; overflow-y: auto;">
+                @{
+                    var roleList = ViewBag.RoleList as IEnumerable<SelectListItem>; // ดึงรายการ Role จาก ViewBag
+                }
+                @if (roleList != null)
+                {
+                    foreach (var role in roleList)
+                    {
+                        bool isChecked = Model.RoleIds != null && Model.RoleIds.Contains(int.Parse(role.Value));
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="RoleIds" value="@role.Value" id="role_@role.Value" @(isChecked ? "checked" : "")>
+                            <label class="form-check-label w-100" for="role_@role.Value" style="cursor: pointer;">
+                                @role.Text
+                            </label>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        <span asp-validation-for="RoleIds" class="text-danger small"></span>
+    </div>
+
+</div>
+
+<!--ในส่วนของปุ่มหน้า Edit, Create-->
+<div class="mt-4 pt-3 text-end">
+    <a asp-action="Index" class="btn btn-outline-secondary me-2">Cancel</a>
+    
+    <button type="submit" class="btn btn-primary">
+        @(isEdit ? "Save Changes" : "Create User")
+    </button> <!--แก้ไขแล้วกดบันทึก-->
+</div>
+
+<!--ทำงานเมื่อหน้าเว็บโหลดเสร็จ-->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Logic Dropdown Roles
+        const checkboxes = document.querySelectorAll('input[name="RoleIds"]');
+        const btnText = document.getElementById('roleButtonText');
+
+        function updateButtonText() {
+            const checkedCount = document.querySelectorAll('input[name="RoleIds"]:checked').length;
+            if(btnText) {
+                if (checkedCount > 0) { //ถ้ามีการติ๊กเลือก -> เปลี่ยนข้อความปุ่มเป็น "1 Role(s) selected" 
+                    btnText.innerText = checkedCount + " Role(s) selected";
+                    btnText.classList.remove('text-muted');
+                    btnText.classList.add('text-dark');
+                } else { //ถ้าไม่มีการเลือก -> กลับไปเป็น "Select Roles..."
+                    btnText.innerText = "Select Roles...";
+                    btnText.classList.add('text-muted');
+                    btnText.classList.remove('text-dark');
+                }
+            }
+        }
+        if(checkboxes.length > 0){
+             checkboxes.forEach(cb => cb.addEventListener('change', updateButtonText));
+            updateButtonText();
+        }
+
+        //Logic Toggle Password
+        function attachToggle(btnId, inputId, iconId) {
+            const btn = document.getElementById(btnId);
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+
+            if (btn && input && icon) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault(); 
+                    e.stopPropagation(); 
+
+                    if (input.type === "password") {
+                        input.type = "text";
+                        icon.classList.remove("ri-eye-off-line");
+                        icon.classList.add("ri-eye-line");
+                    } else {
+                        input.type = "password";
+                        icon.classList.remove("ri-eye-line");
+                        icon.classList.add("ri-eye-off-line");
+                    }
+                });
+            }
+        }
+
+        attachToggle('btnTogglePassword', 'inputPassword', 'iconPassword');
+        attachToggle('btnToggleConfirmPassword', 'inputConfirmPassword', 'iconConfirmPassword');
+    });
+</script>

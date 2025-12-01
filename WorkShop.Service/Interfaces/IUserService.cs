@@ -9,7 +9,7 @@ namespace WorkShop.Service.Interfaces
 {
     public interface IUserService
     {
-        // แก้ไขตรงนี้: เพิ่ม ? ให้เป็น Task<User?>
         Task<User?> LoginhAsync(string email, string password, CancellationToken ct = default);
+        Task<User?> GetUserByIdAsync(int id, CancellationToken ct = default);
     }
 }

@@ -9,8 +9,19 @@ namespace WorkShop.Infrastructure.Repositories
 {
     public class UserRepository(WorkShopDbContext db) : EfRepository<User>(db), IUserRepository
     {
-        public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default) //ค้นหาผู้ใช้ในฐานข้อมูลด้วยอีเมล
-            => db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email, ct); //มันจะวิ่งไปที่ตาราง Users และค้นหาแถว (Row) ที่คอลัมน์ Email ตรงกับอีเมลที่ส่งเข้ามา ถ้าเจอ: ก็ส่งข้อมูลผู้ใช้กลับไป ถ้าไม่เจอ: ก็ส่งค่า null กลับไป
-            //AsNoTracking อ่านค่าได้อย่างเดียว แก้ไขไม่ได้ ตอนนี้ต้องการอ่านข้อมูลมา "ตรวจสอบ" รหัสผ่าน ไม่ได้จะแก้ไขข้อมูลจึงเลือกใช้อันนี้ไปก่อน    
+        // นี่คือเมธอดที่ถูกแก้ไข
+        public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
+        {
+            return db.Users
+                .Include(u => u.UserRoles)
+                .AsNoTracking()
+                // ✅✅✅ แก้ไขตรงนี้ครับ ✅✅✅
+                // เพิ่มเงื่อนไข: ต้องเป็นอีเมลนี้ AND (ต้องยังไม่ลบ OR ค่าเป็น null) AND (ต้อง Active)
+                .FirstOrDefaultAsync(u =>
+                    u.Email == email &&
+                    (u.IsDelete == 0 || u.IsDelete == null) &&
+                    u.IsActive == 1
+                , ct);
+        }
     }
 }

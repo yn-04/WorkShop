@@ -1,0 +1,74 @@
+﻿@model WorkShop.Service.Models.RoleFormModel
+
+@{
+    ViewData["Title"] = "Create New Role";
+    var purplePrimary = "#6f42c1";
+}
+
+<style>
+    .btn-purple { background-color: @purplePrimary; color: white; border: none; }
+    .btn-purple:hover { background-color: #5a32a3; color: white; }
+    .header-line { border-bottom: 2px solid #e0d6f5; color: #5a32a3; padding-bottom: 10px; margin-bottom: 20px; }
+</style>
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white" style="background-color: @purplePrimary;">
+            <h4 class="mb-0"><i class="fa fa-plus-circle"></i> Create New Role</h4>
+        </div>
+        <div class="card-body p-4" style="background-color: #fbfaff;">
+            <!--กรอกฟอร์ม Create-->
+            <form asp-action="Create" method="post">
+                <h5 class="header-line">Role Details</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="RoleName" class="form-label fw-bold">Role Name</label>
+                        <input asp-for="RoleName" class="form-control" placeholder="Ex. Admin, Manager" />
+                        <span asp-validation-for="RoleName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Description" class="form-label fw-bold">Description</label>
+                        <input asp-for="Description" class="form-control" placeholder="description" />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold d-block">Status</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" asp-for="IsActive" value="true" checked>
+                        <label class="form-check-label">Active</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" asp-for="IsActive" value="false">
+                        <label class="form-check-label">Inactive</label>
+                    </div>
+                </div>
+
+                <h5 class="header-line mt-4">Permissions Assignment</h5>
+                <div class="card bg-white border">
+                    <div class="card-body">
+                        <div class="row">
+                            @for (int i = 0; i < Model.MenuList.Count; i++)
+                            {
+                                <div class="col-md-3 mb-3">
+                                    <div class="form-check">
+                                        <input type="hidden" asp-for="MenuList[i].MenuId" />
+                                        <input type="hidden" asp-for="MenuList[i].MenuName" />
+                                        <input class="form-check-input" type="checkbox" asp-for="MenuList[i].IsSelected">
+                                        <label class="form-check-label">@Model.MenuList[i].MenuName</label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <!--ปุ่ม Cancel,Create-->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+                    <button type="submit" class="btn btn-purple px-4">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

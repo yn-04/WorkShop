@@ -1,0 +1,125 @@
+﻿@{
+    ViewData["Title"] = "Role Management";
+    // เก็บตัวแปรสีไว้ใช้ใน CSS
+    var purplePrimary = "#6f42c1";
+    var purpleLight = "#e0d6f5";
+    var purpleDark = "#5a32a3";
+}
+
+<style>
+    /* CSS เดิมสำหรับการตกแต่งธีม */
+    .theme-purple-header { color: @purpleDark; font-weight: bold; }
+    .card-purple { border-top: 4px solid @purplePrimary; background-color: #fbfaff; }
+    .btn-purple { background-color: @purplePrimary; color: white; border: none; }
+    .btn-purple:hover { background-color: @purpleDark; color: white; }
+    .btn-purple-light { background-color: #fff; color: @purplePrimary; border: 1px solid @purplePrimary; font-weight: 500; }
+    .btn-purple-light:hover { background-color: @purpleLight; color: @purpleDark; }
+    .table-header-purple { background-color: @purpleLight !important; color: @purpleDark; }
+    .table-header-purple th { text-transform: none !important; vertical-align: middle; }
+    
+    .btn-custom-edit { background-color: #5bc500; color: white !important; border: none; border-radius: 6px; padding: 5px 20px; font-weight: 500; text-decoration: none; transition: 0.2s; display: inline-block; font-size: 0.875rem; }
+    .btn-custom-edit:hover { background-color: #4ca300; color: white !important; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+    .btn-custom-delete { background-color: #ff4d4d; color: white !important; border: none; border-radius: 6px; padding: 5px 16px; font-weight: 500; transition: 0.2s; font-size: 0.875rem; }
+    .btn-custom-delete:hover { background-color: #e60000; color: white !important; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+    
+    .search-input { border-radius: 4px; border: 1px solid #ced4da; padding: 10px; }
+
+    /* CSS สำหรับ Pagination (จะถูกเรียกใช้ใน Partial View) */
+    .pagination-container { font-size: 0.85rem; font-weight: 600; color: #6f42c1; }
+    .page-box { border: 1px solid #6f42c1; color: #333; font-weight: 700; border-radius: 6px; padding: 3px 12px; min-width: 50px; text-align: center; background-color: white; margin: 0 12px; }
+    .page-link-text { color: #ccc; text-decoration: none; cursor: default; transition: color 0.2s; }
+    .page-link-text.active-link { color: #6f42c1; cursor: pointer; }
+    .page-link-text.active-link:hover { color: #5a32a3; }
+</style>
+
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="theme-purple-header mb-0">Role Manage</h2>
+        <div>
+            <button type="button" onclick="loadData(1)" class="btn btn-purple-light px-4 me-2 shadow-sm">Search</button> 
+            
+            <a asp-action="Create" class="btn btn-purple px-4 shadow-sm">Create</a> 
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <input type="text" id="txtKeyword" class="form-control search-input" 
+               placeholder="Search..." onkeyup="if(event.keyCode===13) loadData(1);" />
+    </div>
+
+    <div id="table-container">
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading data...</p>
+        </div>
+    </div>
+
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        $(document).ready(function () {
+            // โหลดข้อมูลหน้าแรกทันทีที่เข้าเว็บ
+            loadData(1);
+        });
+
+        // ฟังก์ชันสำหรับโหลดข้อมูล (Search & Pagination)
+        function loadData(pageNo) {
+            var keyword = $('#txtKeyword').val(); // ดึงค่าจากช่องค้นหา
+            
+            // แสดง Loading ก่อนโหลด
+            $('#table-container').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>');
+
+            $.ajax({
+                url: '@Url.Action("GetRoleList", "RoleManage")', // ยิงไปที่ Action ใหม่
+                type: 'GET',
+                data: { keyword: keyword, pageNo: pageNo },
+                success: function (result) {
+                    // นำผลลัพธ์ (Partial View) มาแปะลงใน div
+                    $('#table-container').html(result);
+                },
+                error: function (xhr, status, error) {
+                    $('#table-container').html('<div class="text-center text-danger py-5">Error loading data. Please try again.</div>');
+                    console.error(error);
+                }
+            });
+        }
+
+        // ฟังก์ชันสำหรับลบข้อมูล (Delete)
+        function deleteRole(id, roleName) {
+            if (confirm('Are you sure you want to DELETE role: ' + roleName + '?')) {
+                
+                // ดึง Token จากหน้าเว็บเพื่อความปลอดภัย (CSRF Protection)
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("Delete", "RoleManage")',
+                    type: 'POST',
+                    data: { 
+                        id: id, 
+                        __RequestVerificationToken: token 
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            // ถ้าลบสำเร็จ ให้โหลดข้อมูลปัจจุบันใหม่ (Refresh ตาราง)
+                            // ดึงหน้าปัจจุบันจาก element ที่ active อยู่ (ถ้ามี) หรือกลับไปหน้า 1
+                            loadData(1); 
+                        } else {
+                            alert("Cannot delete: " + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert("Error processing request: " + error);
+                    }
+                });
+            }
+        }
+    </script>
+}

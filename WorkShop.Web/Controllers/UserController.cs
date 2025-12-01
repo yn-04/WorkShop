@@ -6,96 +6,114 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using WorkShop.Core.Entities; // เพื่อรู้จัก User entity
-using WorkShop.Service.Helpers; // เพื่อรู้จัก PasswordHelper
-using Microsoft.AspNetCore.Authorization; //เพื่อรู้จัก [AllowAnonymous]
+using WorkShop.Core.Entities; //User entity
+using WorkShop.Service.Helpers; //PasswordHelper
+using Microsoft.AspNetCore.Authorization; //[AllowAnonymous]
+using WorkShop.Infrastructure.Data; //  DbContext
+using Microsoft.EntityFrameworkCore; // EF Core
 
 namespace WorkShop.Web.Controllers
 {
-    public class UserController(IUserService service) : Controller
+    public class UserController(IUserService service, WorkShopDbContext db) : Controller
     {
-
         public IActionResult Index()
         {
-            // หน้านี้ควรกำหนดให้ [Authorize] เพื่อบังคับล็อกอิน
             return View();
         }
 
         public IActionResult Login()
         {
-            //ตรวจสอบก่อนว่าผู้ใช้ "ล็อกอินอยู่แล้ว" หรือไม่
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("Index", "Home"); //ถ้าล็อกอินอยู่แล้ว: มันจะส่งผู้ใช้กลับไปที่หน้าหลัก(Home / Index) ทันที(เพราะผู้ใช้ไม่จำเป็นต้องเห็นหน้าล็อกอินอีก)
+                return RedirectToAction("Index", "Home");
             }
-            return View(); //ถ้ายังไม่ล็อกอิน: มันก็จะแสดงหน้า Login.cshtml ตามปกติ
+            return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> UserLogin(string Email, string Password, CancellationToken ct) //"ประมวลผล" การล็อกอินหลังจากที่ผู้ใช้กดปุ่ม "Login" ในฟอร์ม
+        //ทำงานหลังจากที่ผู้ใช้กรอกอีเมล/รหัสผ่าน แล้วกดปุ่มLogin
+        public async Task<IActionResult> UserLogin(string Email, string Password, CancellationToken ct)
         {
-            var res = await service.LoginhAsync(Email, Password, ct); //รับ Email และ Password ที่ผู้ใช้กรอกมา ส่งไปให้ IUserService (ที่เราทำไว้ก่อนหน้า) ตรวจสอบว่า "อีเมลนี้ และ รหัสผ่านนี้" ถูกต้องและตรงกันในฐานข้อมูลหรือไม่
+            var res = await service.LoginhAsync(Email, Password, ct); //เช็กว่าอีเมลและรหัสผ่านนี้ถูกต้องหรือไม่
+                                                                      //res ที่ได้กลับมา คือ Userพ่วงUserRoles มาด้วย
 
-            if (res == null) 
+            if (res == null) //รหัสผิด หรือไม่มีผู้ใช้
             {
-                // ถ้า res เป็น null = ล็อกอินไม่สำเร็จ (ไม่พบผู้ใช้ หรือ รหัสผ่านผิด)
                 ViewData["ErrorMessage"] = "Invalid email or password.";
-                return View("Login"); // กลับไปหน้า Login พร้อมแสดงข้อความเตือน
+                return View("Login");
             }
 
-            // ถ้า res ไม่ใช่ null = ล็อกอินสำเร็จ
-            // สร้าง Claims (ข้อมูลที่จะเก็บไว้ใน Cookie ว่าผู้ใช้คือใคร)
-            var claims = new List<Claim>
+            var claims = new List<Claim> //ล้อกอินผ่านสร้าง claims
             {
-                //เก็บ displayname ไว้ เป็นชื่อที่แสดงผล (User.Identity.Name) ในหน้าเว็บ
-                new Claim(ClaimTypes.Name, res.DisplayName),
-
-                // เก็บ ID ผู้ใช้ (จากคอลัมน์ UserId ที่เราดูจากรูป)
-                new Claim(ClaimTypes.NameIdentifier, res.UserId.ToString()),
-                
-                // (แนะนำ) เก็บ Email แยกไว้ใน Claim ประเภท Email ด้วย
-                new Claim(ClaimTypes.Email, res.Email),
-
-                // (Optional) ถ้าคุณมี Role ก็เพิ่มตรงนี้
-                // new Claim(ClaimTypes.Role, res.RoleName), 
+                new Claim(ClaimTypes.Name, res.DisplayName), // (เก็บ DisplayName สำหรับ Navbar)
+                new Claim(ClaimTypes.NameIdentifier, res.UserId.ToString()), // (เก็บ UserId)
+                new Claim(ClaimTypes.Email, res.Email), // (เก็บ Email)
             };
 
-            //"โอเค ฉันตรวจสอบคนนี้แล้ว เขาล็อกอินผ่าน" และสั่งให้ระบบ สร้าง Cookie ที่เข้ารหัสไว้ในเครื่องของผู้ใช้
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme); 
+            // ดึง RoleId ทั้งหมดที่ผู้ใช้มี (จาก User Entity ที่ Include มา)
+            var userRoleIds = res.UserRoles.Select(ur => ur.RoleId).ToList();
+            //คำนวณสิทธิ์ล่วงหน้า
+            var permissions = await db.RoleMenuPermissions//ดึงข้อมูลจากตาราง RoleMenuPermission
+                .Include(p => p.Menu) // Join ตาราง Menu
+                .Where(p => userRoleIds.Contains(p.RoleId) && p.Menu.IsActive == 1)  //กรองเฉพาะ RoleId ที่ผู้ใช้มี และเมนูที่ Active
+                .Select(p => p.Menu.MenuCode) // สิทธิ์ คือ MenuCode
 
-            // สั่งให้ระบบ Sign In (สร้าง Cookie)
+                .Distinct() //เอาเฉพาะmenucodeที่ไม่ซ้ำกัน
+                .ToListAsync(ct); //เอาผลลัพธ์ทั้งหมดที่ได้มาใส่ไว้ในlist async ไม่หยุดรอเฉยๆ ไปทำงานอย่างอื่นรอก่อน
+                                  //ct คือ ปุ่มยกเลิก(CancellationToken) ถ้าผู้ใช้ยกเลิกหรือกดปิดเบาเซอร์จะหยุดการทำงาน
+
+            //มันจะวนลูปสิทธิ์(MenuCode) ที่หาได้ทั้งหมด แล้วเก็บลง claims
+            foreach (var permission in permissions)
+            {
+                if (!string.IsNullOrEmpty(permission)) //ป้องกัน MenuCode ที่เป็น NULL
+                {
+                    //ตั้งชื่อ Claim ชนิดใหม่ว่า Permission
+                    claims.Add(new Claim("Permission", permission));
+                }
+            }
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity));
 
-            //ส่งผู้ใช้ไปยังหน้าหลักหลังจากล็อกอินสำเร็จ
             return RedirectToAction("Index", "Home");
         }
 
-        // Action สำหรับสร้าง Hash (สำหรับทดสอบ)
-        //[AllowAnonymous] // อนุญาตให้เข้าถึงได้แม้ยังไม่ล็อกอิน
-        //public IActionResult GetHash(string id)
-        //{
-            // "id" คือรหัสผ่านที่เราอยาก Hash
-            //if (string.IsNullOrEmpty(id))
-           // {
-           //     return Content("Please provide a password in the URL. Example: /User/GetHash?id=123456"); //รหัสผ่านเดิม = J8c3o7qjbl5YYS0vGwVQ0g==
-           // }
-
-           // var passwordHelper = new PasswordHelper();
-            //string hashedPassword = passwordHelper.HashPassword(id);
-
-            // คืนค่า Hash ที่ได้ออกมาเป็น Text
-           // return Content(hashedPassword);
-       // }
-
         public async Task<IActionResult> Logout()
         {
-            // สั่งให้ระบบ Sign Out (ลบ Cookie ยืนยันตัวตน)
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-            // ส่งผู้ใช้กลับไปหน้า Login
             return RedirectToAction("Login", "User");
+        }
+
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+        // --- เครื่องมือสร้าง Hash (แบบปลอดภัย ใช้ Form POST) ---
+        [AllowAnonymous]
+        public IActionResult GetHash()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult GetHash(string password)
+        {
+            if (string.IsNullOrEmpty(password))
+            {
+                ViewData["ErrorMessage"] = "Please enter a password to hash.";
+                return View();
+            }
+
+            var passwordHelper = new PasswordHelper();
+            string hashedPassword = passwordHelper.HashPassword(password);
+
+            ViewData["HashedPassword"] = hashedPassword;
+            return View();
         }
     }
 }

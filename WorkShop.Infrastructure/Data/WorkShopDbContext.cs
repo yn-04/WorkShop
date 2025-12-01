@@ -8,13 +8,9 @@ namespace WorkShop.Infrastructure.Data
         public WorkShopDbContext(DbContextOptions<WorkShopDbContext> options) : base(options) { }
 
         public virtual DbSet<Menu> Menus { get; set; }
-
         public virtual DbSet<Role> Roles { get; set; }
-
         public virtual DbSet<RoleMenuPermission> RoleMenuPermissions { get; set; }
-
         public virtual DbSet<User> Users { get; set; }
-
         public virtual DbSet<UserRole> UserRoles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -68,6 +64,7 @@ namespace WorkShop.Infrastructure.Data
 
             modelBuilder.Entity<RoleMenuPermission>(entity =>
             {
+                // Composite Key
                 entity.HasKey(e => new { e.RoleId, e.MenuId });
 
                 entity.ToTable("RoleMenuPermission");
@@ -116,11 +113,14 @@ namespace WorkShop.Infrastructure.Data
                     .HasDefaultValue("-")
                     .HasAnnotation("Relational:DefaultConstraintName", "DF_User_Password");
                 entity.Property(e => e.Phone).HasMaxLength(50);
+
+                // ✅ ใช้ UpdatedDate (มี d) ตามที่คุณเลือก
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
             });
 
             modelBuilder.Entity<UserRole>(entity =>
             {
+                // ✅ Composite Key (UserId + RoleId)
                 entity.HasKey(e => new { e.UserId, e.RoleId });
 
                 entity.ToTable("UserRole");

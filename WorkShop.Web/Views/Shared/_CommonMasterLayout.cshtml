@@ -2,7 +2,7 @@
   @* Compact/Fluid class *@
   ViewData["contentType"] = ViewData["container"] is string container && container == "container-xxl" ? "layout-compact layout-menu-fixed" : "";
 }
-
+@using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor httpContextAccessor
 
 <!DOCTYPE html>
@@ -66,6 +66,8 @@
 
   <!-- Place this tag in your head or just before your close body tag. -->
   <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  @await RenderSectionAsync("Scripts", required: false)
 
 </body>
 

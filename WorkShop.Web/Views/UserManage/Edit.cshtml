@@ -1,0 +1,24 @@
+﻿@model WorkShop.Service.Models.UserFormModel
+
+@{
+    ViewData["Title"] = "Edit User";
+    var purplePrimary = "#4a148c"; 
+}
+
+<div class="container mt-5"> <div class="card shadow-sm" style="border-top: 4px solid @purplePrimary;">
+        <div class="card-header bg-white">
+            <h4 style="color: @purplePrimary; font-weight: bold;">Edit User</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" method="post"> <!--เมื่อกดปุ่ม Save ให้ส่งข้อมูลกลับไปที่ UserManageController Action ชื่อ Edit (แบบ POST)-->
+                <input type="hidden" asp-for="UserId" /> 
+                
+                <partial name="_UserForm" model="Model" /> <!--เรียกใช้ _UserForm.cshtml มาแสดงผลตรงนี้ ทำให้เราไม่ต้องเขียนโค้ดช่องกรอก Email, Password, Name ซ้ำซ้อนกับหน้า Create-->
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} <!--สำหรับตรวจสอบความถูกต้อง (Validation) เช่น กรุณากรอกช่องนี้ รูปแบบอีเมลไม่ถูกต้อง ให้ทำงานทันทีที่หน้าจอ โดยไม่ต้องรอส่งไป Server-->
+}

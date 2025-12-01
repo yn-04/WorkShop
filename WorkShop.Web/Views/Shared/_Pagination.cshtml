@@ -1,0 +1,51 @@
+﻿@model WorkShop.Service.Models.SearchBaseModel
+
+@if (Model.TotalPages > 1)
+{
+    <div class="d-flex justify-content-center align-items-center mt-4 gap-3">
+        <!-- ปุ่ม Previous -->
+        @if (Model.HasPreviousPage)
+        {
+            <a asp-action="Index" 
+               asp-route-pageNo="@(Model.PageNo - 1)" 
+               asp-route-keyword="@Model.Keyword" 
+               asp-route-email="@(Model.GetType().GetProperty("Email")?.GetValue(Model))"
+               asp-route-phone="@(Model.GetType().GetProperty("Phone")?.GetValue(Model))"
+               asp-route-displayName="@(Model.GetType().GetProperty("DisplayName")?.GetValue(Model))"
+               asp-route-roleId="@(Model.GetType().GetProperty("RoleId")?.GetValue(Model))"
+               asp-route-isActive="@(Model.GetType().GetProperty("IsActive")?.GetValue(Model))"
+               class="btn btn-outline-success border-0 fw-bold fs-5 text-dark">
+               Previous
+            </a>
+        }
+        else
+        {
+            <span class="btn btn-outline-secondary border-0 fw-bold fs-5 disabled text-muted">Previous</span>
+        }
+
+        <!-- แสดงหน้าปัจจุบัน -->
+        <div class="border border-success border-2 rounded px-3 py-1 fw-bold fs-5 text-dark">
+            @Model.PageNo / @Model.TotalPages
+        </div>
+
+        <!-- ปุ่ม Next -->
+        @if (Model.HasNextPage)
+        {
+            <a asp-action="Index" 
+               asp-route-pageNo="@(Model.PageNo + 1)" 
+               asp-route-keyword="@Model.Keyword"
+               asp-route-email="@(Model.GetType().GetProperty("Email")?.GetValue(Model))"
+               asp-route-phone="@(Model.GetType().GetProperty("Phone")?.GetValue(Model))"
+               asp-route-displayName="@(Model.GetType().GetProperty("DisplayName")?.GetValue(Model))"
+               asp-route-roleId="@(Model.GetType().GetProperty("RoleId")?.GetValue(Model))"
+               asp-route-isActive="@(Model.GetType().GetProperty("IsActive")?.GetValue(Model))"
+               class="btn btn-outline-success border-0 fw-bold fs-5 text-dark">
+               Next
+            </a>
+        }
+        else
+        {
+            <span class="btn btn-outline-secondary border-0 fw-bold fs-5 disabled text-muted">Next</span>
+        }
+    </div>
+}

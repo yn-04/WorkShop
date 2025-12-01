@@ -2,7 +2,7 @@
 @if (ViewData["navbarFull"] != null)
 {
   <div class="navbar-brand app-brand demo d-none d-xl-flex py-0 me-6">
-    <a asp-controller="Dashboards" asp-action="Index" class="app-brand-link gap-2">
+    <a asp-controller="Home" asp-action="Index" class="app-brand-link gap-2">
       <span class="app-brand-logo demo">
         @await Html.PartialAsync("../_Partials/_Macros")
       </span>
@@ -23,18 +23,13 @@
 
 
 <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
-
-  <div class="navbar-nav align-items-center">
-    <div class="nav-item d-flex align-items-center">
-      <i class="icon-base ri ri-search-line icon-lg lh-0"></i>
-      <input type="text" class="form-control border-0 shadow-none" placeholder="Search..." aria-label="Search..." />
-    </div>
-  </div>
   <ul class="navbar-nav flex-row align-items-center ms-md-auto">
 
     <li class="nav-item lh-1 me-4">
       <a class="github-button" href="https://github.com/themeselection/materio-bootstrap-html-aspnet-core-mvc-admin-template-free" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star themeselection/materio-html-admin-template-free on GitHub">Star</a>
     </li>
+
+    @* --- ⬇️ นี่คือส่วนที่แก้ไข (ใช้ @if ตรวจสอบการล็อกอิน) ⬇️ --- *@
 
     @if (User.Identity != null && User.Identity.IsAuthenticated)
     {
@@ -54,9 +49,11 @@
                     </div>
                   </div>
                   <div class="flex-grow-1">
-                    @*เปลี่ยนชื่อ "John Doe" เป็นชื่อผู้ใช้จริง *@
-                    <h6 class="mb-0 small">@User.Identity.Name</h6>
-                    <small class="text-body-secondary">User</small> @* (คุณอาจจะอยากแสดง Role ตรงนี้ ถ้ามี) *@
+                    
+                    @* 1. แสดงชื่อผู้ใช้ (จาก DisplayName ที่เราตั้งใน Claims) *@
+                    <h6 class="mb-0 small">@User.Identity.Name</h6> 
+                    
+                    <small class="text-body-secondary">User</small> @* (คุณสามารถใช้ User.IsInRole("Admin") ? "Admin" : "User" ตรงนี้ได้) *@
                   </div>
                 </div>
               </a>
@@ -87,7 +84,8 @@
             </li>
             <li>
               <div class="d-grid px-4 pt-2 pb-1">
-                @* แก้ไข href ของปุ่ม Logout *@
+                
+                @* 2. แก้ไข href ของปุ่ม Logout *@
                 <a class="btn btn-danger d-flex" href="/User/Logout">
                   <small class="align-middle">Logout</small>
                   <i class="icon-base ri ri-logout-box-r-line ms-2 icon-16px"></i>
@@ -100,12 +98,15 @@
     else
     {
         <li class="nav-item">
-          @*เพิ่มปุ่ม Login ถ้ายังไม่ล็อกอิน *@
+          
+          @* 3. เพิ่มปุ่ม Login ถ้ายังไม่ล็อกอิน *@
           <a class="btn btn-primary" href="/User/Login">
             <span class="align-middle">Login</span>
           </a>
         </li>
     }
+    
+    @* --- ⬆️ สิ้นสุดส่วนที่แก้ไข ⬆️ --- *@
 
   </ul>
 </div>

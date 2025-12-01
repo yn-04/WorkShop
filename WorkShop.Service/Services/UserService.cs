@@ -6,35 +6,38 @@ using System.Threading.Tasks;
 using WorkShop.Core.Entities;
 using WorkShop.Core.Interfaces;
 using WorkShop.Service.Interfaces;
-using WorkShop.Service.Helpers; // เพิ่ม using สำหรับ Helper
+using WorkShop.Service.Helpers;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace WorkShop.Service.Services
 {
-    public class UserService(IUserRepository users, IRepository<User> repo) : IUserService 
+    public class UserService(IUserRepository users, IRepository<User> repo) : IUserService
     {
-        // สร้าง instance ของ PasswordHelper
         private readonly PasswordHelper _passwordHelper = new PasswordHelper();
 
-        public async Task<User?> LoginhAsync(string email, string password, CancellationToken ct = default) //ตรวจสอบการล็อกอินทั้งหมดตั้งแต่ต้นจนจบ
+        public async Task<User?> LoginhAsync(string email, string password, CancellationToken ct = default)
         {
-            var existing = await users.GetByEmailAsync(email, ct); //ค้นหาผู้ใช้ด้วยอีเมลที่ถูกส่งมา
+            //ใช้ users (IUserRepository) เพื่อดึง Role มาด้วย
+            var existing = await users.GetByEmailAsync(email, ct);
 
-            // ตรวจสอบว่ามีผู้ใช้นี้หรือไม่
             if (existing is null)
             {
-                return null; // ไม่พบผู้ใช้ อีเมลผิด
+                return null;
             }
 
-            // ตรวจสอบรหัสผ่าน
-            // ถ้าหาอีเมลเจอจะตรวจสอบรหัสผ่าน ถ้ารหัสผ่านที่ผู้ใช้กรอกกับรหัสผ่านในฐานข้อมูลตรงกันก็จะล้อกอินได้
             if (!_passwordHelper.VerifyPassword(existing.Password, password))
             {
                 return null; // รหัสผ่านไม่ถูกต้อง
             }
 
-            // ถ้าผ่านทั้งหมด = ล็อกอินสำเร็จ
             return existing;
+        }
+
+        public async Task<User?> GetUserByIdAsync(int id, CancellationToken ct = default)
+        {
+            var user = await repo.GetByIdAsync(id, ct);
+
+            return user; // คืนค่า user ที่ค้นหาเจอ (หรือ null ถ้าไม่เจอ)
         }
     }
 }

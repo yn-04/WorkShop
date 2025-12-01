@@ -1,0 +1,84 @@
+﻿@model WorkShop.Service.Models.RoleSearchModel
+
+<div class="card shadow-sm card-purple">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-header-purple">
+                    <tr>
+                        <th>No</th>
+                        <th>Role Name</th>
+                        <th>Role Description</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Results != null && Model.Results.Any())
+                    {
+                        int rowNumber = ((Model.PageNo - 1) * Model.PageSize) + 1;
+                        foreach (var role in Model.Results)
+                        {
+                            <tr>
+                                <td>@(rowNumber++)</td>
+                                <td class="fw-bold text-purple">@role.RoleName</td>
+                                <td>@role.Description</td>
+                                <td>
+                                    @if (role.IsActive)
+                                    {
+                                        <span class="badge bg-success rounded-pill px-3">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary rounded-pill px-3">Inactive</span>
+                                    }
+                                </td>
+                                <td>@role.CreatedDate.ToString("dd/MM/yyyy")</td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a asp-action="Edit" asp-route-id="@role.RoleId" class="btn-custom-edit">Edit</a>
+                                        
+                                        <button type="button" class="btn-custom-delete" 
+                                                onclick="deleteRole(@role.RoleId, '@role.RoleName')">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="6" class="text-center text-muted py-5">No roles found.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="d-flex justify-content-center align-items-center mt-4 pagination-container">
+        @if (Model.HasPreviousPage)
+        {
+            <a href="javascript:void(0)" onclick="loadData(@(Model.PageNo - 1))" class="page-link-text active-link">Previous</a>
+        }
+        else
+        {
+            <span class="page-link-text">Previous</span>
+        }
+
+        <div class="page-box">@Model.PageNo / @Model.TotalPages</div>
+
+        @if (Model.HasNextPage)
+        {
+            <a href="javascript:void(0)" onclick="loadData(@(Model.PageNo + 1))" class="page-link-text active-link">Next</a>
+        }
+        else
+        {
+            <span class="page-link-text">Next</span>
+        }
+    </div>
+}

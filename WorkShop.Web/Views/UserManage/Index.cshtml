@@ -1,0 +1,160 @@
+﻿@model WorkShop.Service.Models.UserSearchModel
+
+@{
+    ViewData["Title"] = "User Management";
+    var purplePrimary = "#6f42c1";
+    var purpleLight = "#e0d6f5";
+    var purpleDark = "#5a32a3";
+}
+
+<style>
+    .theme-purple-header { color: @purpleDark; font-weight: bold; }
+    .card-purple { border-top: 4px solid @purplePrimary; background-color: #fbfaff; }
+    .btn-purple { background-color: @purplePrimary; color: white; border: none; }
+    .btn-purple:hover { background-color: @purpleDark; color: white; }
+    
+    /* สไตล์สำหรับตารางและปุ่มต่างๆ (ยังคงไว้เพื่อให้ Partial View ใช้ได้ หรือถ้า Partial View มี style แยกก็ลบส่วนนี้ได้) */
+    .table-header-purple { background-color: @purpleLight !important; color: @purpleDark; }
+    .table-header-purple th { text-transform: none !important; vertical-align: middle; } 
+
+    .btn-custom-edit {
+        background-color: #5bc500; color: white !important; border: none;
+        border-radius: 6px; padding: 5px 20px; font-weight: 500; text-decoration: none;
+        transition: 0.2s; display: inline-block; font-size: 0.875rem;
+    }
+    .btn-custom-edit:hover { background-color: #4ca300; color: white !important; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+    
+    .btn-custom-delete {
+        background-color: #ff4d4d; color: white !important; border: none;
+        border-radius: 6px; padding: 5px 16px; font-weight: 500;
+        transition: 0.2s; font-size: 0.875rem;
+    }
+    .btn-custom-delete:hover { background-color: #e60000; color: white !important; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+
+    /* CSS Pagination (สำหรับ Partial View) */
+    .pagination-container { font-size: 0.9rem; color: #a1a1a1; font-weight: 600; }
+    .page-box {
+        border: 2px solid #6f42c1; color: #333; font-weight: 700;
+        border-radius: 6px; padding: 4px 16px; min-width: 60px;
+        text-align: center; background-color: white; margin: 0 15px;
+    }
+    .page-link-custom {
+        color: #ccc; text-decoration: none; border: none; background: none;
+        cursor: default; transition: color 0.2s;
+    }
+    .page-link-custom.active-link { color: #5a32a3; cursor: pointer; }
+    .page-link-custom.active-link:hover { color: #6f42c1; }
+    
+    /* Loading Spinner */
+    #loading-spinner { display: none; text-align: center; padding: 40px; color: @purplePrimary; }
+</style>
+
+<div class="container mt-4">
+    <h2 class="theme-purple-header mb-4">User Search</h2>
+
+    <div class="card card-purple shadow-sm mb-4">
+        <div class="card-body">
+            <form onsubmit="event.preventDefault(); loadData(1);">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Email</label>
+                        <input type="text" class="form-control" id="txtEmail" placeholder="Search Email...">
+                    </div>
+   
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Phone</label>
+                        <input type="text" class="form-control" id="txtPhone" placeholder="Search Phone...">
+                    </div>
+       
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Display Name</label>
+                        <input type="text" class="form-control" id="txtDisplayName" placeholder="Name...">
+                    </div>
+           
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Role</label>
+                        <select class="form-select" id="ddlRole" asp-items="ViewBag.RoleList"> 
+                            <option value="">-- All Roles --</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Status</label>
+                        <select class="form-select" id="ddlStatus">
+                            <option value="">-- All --</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+                       
+                    <div class="col-md-9 d-flex gap-2 align-items-end justify-content-end">
+                        <button type="button" onclick="loadData(1)" class="btn btn-purple px-4">
+                            <i class="fa fa-search"></i> Search
+                        </button>
+                       
+                        <a asp-action="Create" class="btn btn-outline-primary px-4">
+                            <i class="fa fa-plus"></i> Create
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div id="loading-spinner">
+                <i class="fa fa-spinner fa-spin fa-3x"></i>
+                <p class="mt-2">Loading data...</p>
+            </div>
+
+            <div id="table-container">
+                </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // โหลดข้อมูลหน้าแรกทันทีเมื่อเข้าเว็บ
+            loadData(1);
+        });
+
+        function loadData(pageNo) {
+            // แสดง Loading และซ่อนตารางเก่า
+            $('#loading-spinner').show();
+            $('#table-container').hide();
+
+            // ใช้ jQuery ดึงค่าจาก input ต่างๆ
+            var email = $('#txtEmail').val();
+            var phone = $('#txtPhone').val();
+            var displayName = $('#txtDisplayName').val();
+            var roleId = $('#ddlRole').val();
+            var isActive = $('#ddlStatus').val();
+
+            // ส่ง Request ไปยัง UserManageController action GetUserList
+            $.ajax({
+                url: '@Url.Action("GetUserList", "UserManage")',
+                type: 'GET',
+                data: {
+                    pageNo: pageNo,
+                    email: email,
+                    phone: phone,
+                    displayName: displayName,
+                    roleId: roleId,
+                    isActive: isActive
+                },
+                success: function (result) { //รับ Html ของตารางจากตัวแปร Result
+                    $('#loading-spinner').hide();
+                    $('#table-container').html(result).fadeIn(); //เอาตารางใหม่แปะแทนที่
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error:", error);
+                    $('#loading-spinner').hide();
+                    alert("เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณาลองใหม่อีกครั้ง");
+                }
+            });
+        }
+    </script>
+}

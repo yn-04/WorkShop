@@ -1,0 +1,29 @@
+﻿@{
+    ViewData["Title"] = "Order";
+}
+<h3>นี่คือ "บัตร" (Claims) ทั้งหมดที่คุณมี:</h3>
+<ul>
+    @foreach (var claim in User.Claims)
+    {
+        <li>
+            <strong>@claim.Type</strong>: @claim.Value
+        </li>
+    }
+</ul>
+<hr />
+<div class="container-xxl flex-grow-1 container-p-y">
+    
+    <h4 class="py-3 mb-4">
+      <span class="text-muted fw-light">Order /</span> Order
+    </h4>
+
+    <div class="card">
+        <h5 class="card-header">Order Page</h5>
+        <div class="card-body">
+            <p>
+                หน้านี้ทำงานแล้ว! 
+            </p>
+        </div>
+    </div>
+
+</div>

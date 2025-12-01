@@ -37,6 +37,10 @@
     @RenderSection("PageScripts", required: false)
 }
 
+@section Scripts {
+    @RenderSection("Scripts", required: false)
+}
+
 @{
     bool isMenu = ViewData["isMenu"] != null && Convert.ToBoolean(ViewData["isMenu"]);
 }

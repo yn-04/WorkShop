@@ -1,0 +1,53 @@
+﻿@{
+    ViewData["Title"] = "Get Password Hash";
+    // (ไฟล์นี้เป็นเครื่องมือสำหรับนักพัฒนา (Dev Tool)
+    //  ดังนั้นมันสามารถใช้ Layout หลักของคุณได้เลย)
+    // Layout = "_Layout"; 
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="py-3 mb-4">
+      <span class="text-muted fw-light">Developer Tool /</span> Get Password Hash
+    </h4>
+
+    <div class="card">
+        <div class="card-body">
+            <p>
+                เครื่องมือนี้ใช้สำหรับสร้าง Hashed Password เพื่อนำไปอัปเดตในฐานข้อมูล (Database)
+            </p>
+            <hr />
+
+            <form asp-action="GetHash" method="post">
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password to Hash:</label>
+                    
+                    <input type="text" name="password" id="password" class="form-control" />
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Generate Hash</button>
+            </form>
+
+            <hr />
+
+            @if (ViewData["HashedPassword"] != null)
+            {
+                <div class="mt-3">
+                    <h5>Hashed Result:</h5>
+                    <p>คัดลอก (Copy) ค่านี้ไปใส่ในคอลัมน์ `Password` ในฐานข้อมูลของคุณ</p>
+                    
+                    <input type="text" readonly class="form-control" value="@ViewData["HashedPassword"]" />
+                </div>
+            }
+
+            @if (ViewData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger mt-3" role="alert">
+                    @ViewData["ErrorMessage"]
+                </div>
+            }
+        </div>
+    </div>
+
+</div>
